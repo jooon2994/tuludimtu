@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Tulu Dimtu Daily Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #f5a623;
+    --accent2: #4fc3f7;
+    --danger: #ef5350;
+    --success: #66bb6a;
+    --text: #e8eaf6;
+    --muted: #7986cb;
+    --label: #9fa8da;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; min-height: 100vh; font-size: 14px; }
+
+  /* ── SETUP SCREEN ── */
+  .setup-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .setup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 420px;
+  }
+  .setup-logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .setup-sub { font-size: 11px; color: var(--muted); margin-bottom: 24px; }
+  .setup-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
+  .setup-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 10px 12px;
+    outline: none;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+  .setup-input:focus { border-color: var(--accent2); }
+  .setup-hint { font-size: 10px; color: var(--muted); margin-top: -10px; margin-bottom: 14px; line-height: 1.5; }
+  .setup-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  .setup-err { font-size: 11px; color: var(--danger); margin-top: 10px; display: none; }
+
+  /* ── HEADER ── */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo-main { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: 1px; }
+  .logo-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; margin-top: 2px; }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    background: transparent; border: 1px solid var(--border); color: var(--label);
+    padding: 6px 12px; border-radius: 6px; font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px; cursor: pointer; transition: all 0.2s;
+  }
+  .nav-tab.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+
+  /* ── PAGES ── */
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+  .page-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+
+  /* ── BLOCK GRID ── */
+  .date-bar {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+  }
+  .date-bar label { font-size: 11px; color: var(--muted); }
+  .date-bar input[type="date"] {
+    background: transparent; border: none; color: var(--accent2);
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; outline: none; cursor: pointer;
+  }
+  .date-bar input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7) sepia(1) saturate(2) hue-rotate(180deg); }
+
+  .block-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+  .block-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .block-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .block-card.submitted { border-color: var(--success); }
+  .block-card.submitted::after { content: '✓'; position: absolute; top: 8px; right: 10px; color: var(--success); font-weight: 700; font-size: 14px; }
+  .block-num { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: var(--accent); line-height: 1; }
+  .block-contractor { font-size: 10px; color: var(--label); margin-top: 4px; line-height: 1.3; }
+
+  /* ── FORM ── */
+  .prog-bar-wrap {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px;
+  }
+  .prog-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .prog-bar-bg { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .prog-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 3px; transition: width 0.4s; }
+  .todate-input {
+    background: transparent; border: none; border-bottom: 1px solid var(--border);
+    color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    width: 50px; text-align: center; outline: none; padding: 2px 4px;
+  }
+  .form-block-title { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .form-block-num { font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 600; color: var(--accent); line-height: 1; }
+  .form-block-contractor { font-size: 12px; color: var(--label); }
+  .form-block-client { font-size: 10px; color: var(--muted); }
+
+  .work-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
+  .work-item:focus-within { border-color: var(--accent2); }
+  .item-header { display: flex; align-items: center; padding: 10px 14px; gap: 10px; cursor: pointer; user-select: none; }
+  .item-num { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); min-width: 20px; }
+  .item-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); }
+  .item-status { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.3s; }
+  .item-status.filled { background: var(--success); }
+  .item-chevron { font-size: 10px; color: var(--muted); transition: transform 0.2s; margin-left: 4px; }
+  .item-chevron.open { transform: rotate(180deg); }
+  .item-fields { display: none; padding: 0 14px 14px; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .item-fields.open { display: grid; }
+  .field-group { display: flex; flex-direction: column; gap: 4px; }
+  .field-group.full { grid-column: 1 / -1; }
+  .field-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .field-input {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+    padding: 8px 10px; outline: none; width: 100%; transition: border-color 0.2s;
+  }
+  .field-input:focus { border-color: var(--accent2); }
+  .field-input.perf-auto { background: var(--bg); color: var(--accent); cursor: not-allowed; }
+  .field-input[type="text"] { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; }
+
+  .btn-submit {
+    width: 100%; background: var(--accent); color: #000; border: none; border-radius: 10px;
+    padding: 14px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 14px;
+    cursor: pointer; margin-top: 16px; transition: opacity 0.2s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-submit:active:not(:disabled) { transform: scale(0.98); opacity: 0.9; }
+  .btn-back {
+    background: transparent; border: 1px solid var(--border); color: var(--label);
+    border-radius: 8px; padding: 8px 14px; font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px; cursor: pointer; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ── DASHBOARD ── */
+  .dash-date-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .dash-date-label { font-size: 11px; color: var(--muted); }
+  .dash-date-input {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--accent2); font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    padding: 6px 10px; outline: none; cursor: pointer;
+  }
+  .dash-date-input::-webkit-calendar-picker-indicator { filter: invert(0.7) sepia(1) saturate(2) hue-rotate(180deg); }
+
+  .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+  .sum-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+  .sum-val { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: var(--accent); line-height: 1; }
+  .sum-val.green { color: var(--success); }
+  .sum-val.blue { color: var(--accent2); }
+  .sum-lbl { font-size: 9px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .dash-block-row {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.2s;
+  }
+  .dash-block-row:hover { border-color: var(--accent2); }
+  .dash-block-row.no-data { opacity: 0.4; cursor: default; }
+  .dash-row-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .dash-block-label { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 13px; color: var(--accent); }
+  .dash-contractor { font-size: 10px; color: var(--label); margin-top: 2px; }
+  .dash-submitted-time { font-size: 9px; color: var(--muted); }
+
+  .mini-bar-bg { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+  .mini-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+
+  .dash-items-preview { display: none; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+  .dash-items-preview.open { display: block; }
+  .preview-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .preview-table th { text-align: left; color: var(--muted); font-weight: 400; font-size: 9px; text-transform: uppercase; padding: 4px 6px; letter-spacing: 0.5px; }
+  .preview-table td { padding: 5px 6px; border-top: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 11px; vertical-align: middle; }
+  .preview-table td:first-child { font-family: 'IBM Plex Sans', sans-serif; color: var(--label); font-size: 11px; }
+
+  .perf-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+  .perf-good { background: rgba(102,187,106,0.15); color: var(--success); }
+  .perf-warn { background: rgba(245,166,35,0.15); color: var(--accent); }
+  .perf-bad  { background: rgba(239,83,80,0.15);  color: var(--danger); }
+
+  .no-data-msg { text-align: center; color: var(--muted); font-size: 12px; padding: 30px; }
+
+  /* ── SPINNER ── */
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.3); border-top-color: #000; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
+    color: #000; font-weight: 700; font-size: 13px; padding: 10px 20px;
+    border-radius: 30px; transition: transform 0.3s; z-index: 999; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); color: #fff; }
+
+  /* ── REFRESH BTN ── */
+  .refresh-btn {
+    background: var(--surface); border: 1px solid var(--border); color: var(--label);
+    border-radius: 6px; padding: 6px 12px; font-size: 11px; cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     SETUP SCREEN (shown until config is saved)
+════════════════════════════════════════════════ -->
+<div class="setup-screen" id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">TULU DIMTU</div>
+    <div class="setup-sub">One-time Supabase configuration</div>
+
+    <div class="setup-label">Supabase Project URL</div>
+    <input class="setup-input" id="cfg-url" placeholder="https://xxxxxxxxxxxx.supabase.co" />
+
+    <div class="setup-label">Supabase Anon Key</div>
+    <input class="setup-input" id="cfg-key" placeholder="eyJhbGciOi..." />
+    <div class="setup-hint">You'll get these from your Supabase project → Settings → API. This is entered once per device and saved.</div>
+
+    <button class="setup-btn" onclick="saveConfig()">Save &amp; Connect</button>
+    <div class="setup-err" id="setup-err"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MAIN APP
+════════════════════════════════════════════════ -->
+<div id="main-app" style="display:none;">
+
+  <div class="app-header">
+    <div>
+      <div class="logo-main">TULU DIMTU</div>
+      <div class="logo-sub">AAHDC SOUTH BRANCH · DAILY REPORT</div>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tab-fill" onclick="showPage('fill',this)">Fill</button>
+      <button class="nav-tab" id="tab-dash" onclick="showPage('dashboard',this)">Dashboard</button>
+    </div>
+  </div>
+
+  <!-- ── FILL PAGE ── -->
+  <div class="page active" id="page-fill">
+
+    <div id="view-selector">
+      <div class="page-title">Select Your Block</div>
+      <div class="date-bar">
+        <label>Report Date (E.C)</label>
+        <input type="date" id="report-date" oninput="renderBlockGrid()" />
+      </div>
+      <div class="block-grid" id="block-grid"></div>
+    </div>
+
+    <div id="view-form" style="display:none;">
+      <button class="btn-back" onclick="backToSelector()">← Back</button>
+
+      <div class="form-block-title">
+        <div class="form-block-num" id="form-block-num"></div>
+        <div>
+          <div style="font-size:11px;color:var(--muted)">Block</div>
+          <div class="form-block-contractor" id="form-contractor"></div>
+          <div class="form-block-client">Client: AAHDC-South Branch · Consultant: AASTU</div>
+        </div>
+      </div>
+
+      <div class="prog-bar-wrap">
+        <span class="prog-label">Todate Physical Progress</span>
+        <div class="prog-bar-bg"><div class="prog-bar-fill" id="todate-bar" style="width:0%"></div></div>
+        <input type="number" class="todate-input" id="todate-input" min="0" max="100" placeholder="0" oninput="updateTodateBar()" />
+        <span style="color:var(--muted);font-size:11px;">%</span>
+      </div>
+
+      <div id="work-items-container"></div>
+
+      <div style="margin-top:12px;">
+        <div class="field-label" style="margin-bottom:6px;">Site Inspector Name</div>
+        <input type="text" class="field-input" id="inspector-name" placeholder="Your full name" style="font-family:'IBM Plex Sans',sans-serif;" />
+      </div>
+
+      <button class="btn-submit" id="submit-btn" onclick="submitReport()">Submit Report</button>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD PAGE ── -->
+  <div class="page" id="page-dashboard">
+    <div class="page-title">Coordinator Dashboard</div>
+    <div class="dash-date-row">
+      <span class="dash-date-label">Date:</span>
+      <input type="date" class="dash-date-input" id="dash-date" oninput="renderDashboard()" />
+      <button class="refresh-btn" onclick="renderDashboard()">↻ Refresh</button>
+      <button onclick="exportCSV()" style="background:var(--surface);border:1px solid var(--border);color:var(--label);border-radius:6px;padding:6px 12px;font-size:11px;cursor:pointer;">Export CSV</button>
+    </div>
+    <div class="summary-cards" id="summary-cards"></div>
+    <div id="dash-blocks"></div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+const CFG_KEY = 'tdreport_supabase_cfg';
+
+function getConfig() {
+  const raw = localStorage.getItem(CFG_KEY);
+  return raw ? JSON.parse(raw) : null;
+}
+
+function saveConfig() {
+  const url = document.getElementById('cfg-url').value.trim().replace(/\/$/, '');
+  const key = document.getElementById('cfg-key').value.trim();
+  const err = document.getElementById('setup-err');
+
+  if (!url.startsWith('https://') || !url.includes('.supabase.co')) {
+    err.textContent = 'Please enter a valid Supabase URL (https://xxxx.supabase.co)';
+    err.style.display = 'block'; return;
+  }
+  if (!key.startsWith('eyJ') && !key.startsWith('sb_publishable_')) {
+    err.textContent = 'Please enter a valid Supabase key';
+    err.style.display = 'block'; return;
+  }
+
+  localStorage.setItem(CFG_KEY, JSON.stringify({ url, key }));
+  bootApp();
+}
+
+// ══════════════════════════════════════════════
+// SUPABASE API HELPERS
+// ══════════════════════════════════════════════
+let SUPABASE_URL = '';
+let SUPABASE_KEY = '';
+const TABLE = 'daily_reports';
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || '',
+      ...options.headers,
+    }
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Supabase error ${res.status}: ${text}`);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+async function getReport(date, blockId) {
+  try {
+    const rows = await sbFetch(`${TABLE}?report_date=eq.${date}&block_id=eq.${blockId}&order=submitted_at.desc&limit=1`);
+    return rows && rows.length > 0 ? rows[0] : null;
+  } catch { return null; }
+}
+
+async function getAllReports(date) {
+  try {
+    const rows = await sbFetch(`${TABLE}?report_date=eq.${date}&order=block_id.asc`);
+    return rows || [];
+  } catch { return []; }
+}
+
+async function upsertReport(data) {
+  await sbFetch(TABLE, {
+    method: 'POST',
+    prefer: 'resolution=merge-duplicates',
+    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify(data),
+  });
+}
+
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+const BLOCKS = [
+  { id: 1,  contractor: 'Senaor Construction' },
+  { id: 2,  contractor: 'Adenew Gebre BC' },
+  { id: 3,  contractor: 'Feyisa Berecha BC' },
+  { id: 4,  contractor: 'SADAR' },
+  { id: 5,  contractor: 'Soboka Wegi BC' },
+  { id: 6,  contractor: 'Bifacon Engineering' },
+  { id: 8,  contractor: 'Anacon Construction' },
+  { id: 9,  contractor: 'Zerihun Birhanu BC' },
+  { id: 10, contractor: 'Fontenina Const' },
+  { id: 11, contractor: 'KH' },
+];
+
+const ITEMS = [
+  'Subsurface Work','Block Work','Internal Plastering','Skirting',
+  'External Plastering','Sanitary Work','Electrical Installation','Gypsum Work',
+  'Ceramic Work','Aluminum Window Work','Trade and Riser Work',
+  'Window and Door Sill','Roofing Truss Work','Wooden Door Work',
+];
+
+let currentBlock = null;
+// cache for block grid
+let submittedCache = {};
+
+// ══════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════
+function bootApp() {
+  const cfg = getConfig();
+  if (!cfg) {
+    document.getElementById('setup-screen').style.display = 'flex';
+    document.getElementById('main-app').style.display = 'none';
+    return;
+  }
+  SUPABASE_URL = cfg.url;
+  SUPABASE_KEY = cfg.key;
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+
+  document.getElementById('report-date').value = todayStr();
+  document.getElementById('dash-date').value = todayStr();
+  renderBlockGrid();
+}
+
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+function showPage(name, tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  tab.classList.add('active');
+  if (name === 'dashboard') {
+    document.getElementById('dash-date').value = document.getElementById('report-date').value || todayStr();
+    renderDashboard();
+  }
+}
+
+function backToSelector() {
+  document.getElementById('view-form').style.display = 'none';
+  document.getElementById('view-selector').style.display = 'block';
+  renderBlockGrid();
+}
+
+// ══════════════════════════════════════════════
+// BLOCK GRID
+// ══════════════════════════════════════════════
+async function renderBlockGrid() {
+  const date = document.getElementById('report-date').value || todayStr();
+  const grid = document.getElementById('block-grid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;padding:20px;">Loading...</div>';
+
+  try {
+    const rows = await getAllReports(date);
+    submittedCache = {};
+    rows.forEach(r => { submittedCache[r.block_id] = r; });
+  } catch(e) {
+    submittedCache = {};
+  }
+
+  grid.innerHTML = '';
+  BLOCKS.forEach(b => {
+    const submitted = !!submittedCache[b.id];
+    const div = document.createElement('div');
+    div.className = 'block-card' + (submitted ? ' submitted' : '');
+    div.innerHTML = `
+      <div class="block-num">B${String(b.id).padStart(2,'0')}</div>
+      <div class="block-contractor">${b.contractor}</div>
+    `;
+    div.onclick = () => openForm(b.id);
+    grid.appendChild(div);
+  });
+}
+
+// ══════════════════════════════════════════════
+// FORM
+// ══════════════════════════════════════════════
+async function openForm(blockId) {
+  currentBlock = BLOCKS.find(b => b.id === blockId);
+  document.getElementById('view-selector').style.display = 'none';
+  document.getElementById('view-form').style.display = 'block';
+
+  document.getElementById('form-block-num').textContent = `B${String(blockId).padStart(2,'0')}`;
+  document.getElementById('form-contractor').textContent = currentBlock.contractor;
+
+  const date = document.getElementById('report-date').value || todayStr();
+  const existing = submittedCache[blockId] || await getReport(date, blockId) || {};
+  const itemsData = existing.items_json ? JSON.parse(existing.items_json) : [];
+
+  document.getElementById('todate-input').value = existing.todate_pct || '';
+  document.getElementById('todate-bar').style.width = (existing.todate_pct || 0) + '%';
+  document.getElementById('inspector-name').value = existing.inspector_name || '';
+
+  const container = document.getElementById('work-items-container');
+  container.innerHTML = '';
+  ITEMS.forEach((name, idx) => {
+    const saved = itemsData[idx] || {};
+    const remaining = saved.remaining || '';
+    const plan      = saved.plan      || '';
+    const executed  = saved.executed  || '';
+    const desc      = saved.desc      || '';
+    const perfVal   = calcPerf(remaining, plan, executed);
+    const isFilled  = remaining || plan || executed || desc;
+
+    const div = document.createElement('div');
+    div.className = 'work-item';
+    div.innerHTML = `
+      <div class="item-header" onclick="toggleItem(${idx})">
+        <span class="item-num">${String(idx+1).padStart(2,'0')}</span>
+        <span class="item-name">${name}</span>
+        <span class="item-status ${isFilled?'filled':''}" id="item-status-${idx}"></span>
+        <span class="item-chevron ${isFilled?'open':''}" id="chevron-${idx}">▼</span>
+      </div>
+      <div class="item-fields ${isFilled?'open':''}" id="item-fields-${idx}">
+        <div class="field-group">
+          <div class="field-label">Remaining Work (%)</div>
+          <input type="number" class="field-input" id="remaining-${idx}" min="0" max="100" placeholder="0" value="${remaining}" oninput="onItemInput(${idx})" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Daily Plan (%)</div>
+          <input type="number" class="field-input" id="plan-${idx}" min="0" max="100" placeholder="0" value="${plan}" oninput="onItemInput(${idx})" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Daily Executed (%)</div>
+          <input type="number" class="field-input" id="executed-${idx}" min="0" max="100" placeholder="0" value="${executed}" oninput="onItemInput(${idx})" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Daily Performance</div>
+          <input type="text" class="field-input perf-auto" id="perf-${idx}" readonly value="${perfVal!==null?perfVal+'%':'—'}" />
+        </div>
+        <div class="field-group full">
+          <div class="field-label">Description of Work</div>
+          <input type="text" class="field-input" id="desc-${idx}" placeholder="Notes about today's work..." value="${desc}" oninput="onItemInput(${idx})" style="font-family:'IBM Plex Sans',sans-serif;" />
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function toggleItem(idx) {
+  document.getElementById(`item-fields-${idx}`).classList.toggle('open');
+  document.getElementById(`chevron-${idx}`).classList.toggle('open');
+}
+
+function onItemInput(idx) {
+  const remaining = document.getElementById(`remaining-${idx}`).value;
+  const plan      = document.getElementById(`plan-${idx}`).value;
+  const executed  = document.getElementById(`executed-${idx}`).value;
+  const desc      = document.getElementById(`desc-${idx}`).value;
+  const perfVal   = calcPerf(remaining, plan, executed);
+  document.getElementById(`perf-${idx}`).value = perfVal !== null ? perfVal + '%' : '—';
+  const isFilled = remaining || plan || executed || desc;
+  const status = document.getElementById(`item-status-${idx}`);
+  isFilled ? status.classList.add('filled') : status.classList.remove('filled');
+}
+
+function updateTodateBar() {
+  const v = parseFloat(document.getElementById('todate-input').value) || 0;
+  document.getElementById('todate-bar').style.width = Math.min(v, 100) + '%';
+}
+
+function calcPerf(remaining, plan, executed) {
+  const p = parseFloat(plan), e = parseFloat(executed);
+  if (!isNaN(p) && p > 0 && !isNaN(e)) return Math.round((e / p) * 100);
+  return null;
+}
+
+async function submitReport() {
+  const date = document.getElementById('report-date').value || todayStr();
+  const inspector = document.getElementById('inspector-name').value.trim();
+  if (!inspector) {
+    alert('Please enter your name before submitting.');
+    document.getElementById('inspector-name').focus();
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Submitting...';
+
+  const items = ITEMS.map((_, idx) => ({
+    remaining: document.getElementById(`remaining-${idx}`).value,
+    plan:      document.getElementById(`plan-${idx}`).value,
+    executed:  document.getElementById(`executed-${idx}`).value,
+    perf:      document.getElementById(`perf-${idx}`).value,
+    desc:      document.getElementById(`desc-${idx}`).value,
+  }));
+
+  // avg perf
+  let perfSum = 0, perfCnt = 0;
+  items.forEach(it => { const p = parseFloat(it.perf); if (!isNaN(p)) { perfSum += p; perfCnt++; } });
+  const avgPerf = perfCnt > 0 ? Math.round(perfSum / perfCnt) : null;
+
+  const payload = {
+    report_date:    date,
+    block_id:       currentBlock.id,
+    contractor:     currentBlock.contractor,
+    inspector_name: inspector,
+    todate_pct:     parseFloat(document.getElementById('todate-input').value) || null,
+    items_json:     JSON.stringify(items),
+    avg_performance: avgPerf,
+    submitted_at:   new Date().toISOString(),
+  };
+
+  try {
+    await upsertReport(payload);
+    showToast(`Block ${currentBlock.id} submitted ✓`, 'success');
+    btn.disabled = false;
+    btn.innerHTML = 'Submit Report';
+    backToSelector();
+  } catch(e) {
+    showToast('Submit failed — check connection', 'error');
+    btn.disabled = false;
+    btn.innerHTML = 'Submit Report';
+    console.error(e);
+  }
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+async function renderDashboard() {
+  const date = document.getElementById('dash-date').value || todayStr();
+  document.getElementById('dash-blocks').innerHTML = '<div class="no-data-msg">Loading...</div>';
+  document.getElementById('summary-cards').innerHTML = '';
+
+  const rows = await getAllReports(date);
+  const reportMap = {};
+  rows.forEach(r => { reportMap[r.block_id] = r; });
+
+  let submitted = 0, totalPerf = 0, perfCount = 0;
+  BLOCKS.forEach(b => {
+    const r = reportMap[b.id];
+    if (r) {
+      submitted++;
+      if (r.avg_performance !== null && r.avg_performance !== undefined) {
+        totalPerf += r.avg_performance; perfCount++;
+      }
+    }
+  });
+  const avgPerf = perfCount > 0 ? Math.round(totalPerf / perfCount) : null;
+
+  document.getElementById('summary-cards').innerHTML = `
+    <div class="sum-card">
+      <div class="sum-val">${submitted}/${BLOCKS.length}</div>
+      <div class="sum-lbl">Submitted</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-val blue">${BLOCKS.length - submitted}</div>
+      <div class="sum-lbl">Pending</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-val ${avgPerf >= 100 ? 'green' : ''}">${avgPerf !== null ? avgPerf + '%' : '—'}</div>
+      <div class="sum-lbl">Avg Perf</div>
+    </div>
+  `;
+
+  const dashBlocks = document.getElementById('dash-blocks');
+  dashBlocks.innerHTML = '';
+
+  if (submitted === 0) {
+    dashBlocks.innerHTML = `<div class="no-data-msg">No reports submitted for this date yet.</div>`;
+    return;
+  }
+
+  BLOCKS.forEach(b => {
+    const report = reportMap[b.id];
+    const div = document.createElement('div');
+    div.className = 'dash-block-row' + (!report ? ' no-data' : '');
+
+    if (!report) {
+      div.innerHTML = `
+        <div class="dash-row-top">
+          <div><div class="dash-block-label">Block ${String(b.id).padStart(2,'0')}</div><div class="dash-contractor">${b.contractor}</div></div>
+          <span style="font-size:11px;color:var(--muted);">Not submitted</span>
+        </div>`;
+    } else {
+      const bAvg = report.avg_performance;
+      const barColor = bAvg === null ? 'var(--border)' : bAvg >= 100 ? 'var(--success)' : bAvg >= 70 ? 'var(--accent)' : 'var(--danger)';
+      const time = report.submitted_at ? new Date(report.submitted_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+      const itemsData = report.items_json ? JSON.parse(report.items_json) : [];
+
+      div.innerHTML = `
+        <div class="dash-row-top">
+          <div>
+            <div class="dash-block-label">Block ${String(b.id).padStart(2,'0')}</div>
+            <div class="dash-contractor">${b.contractor} · ${report.inspector_name}</div>
+          </div>
+          <div style="text-align:right;">
+            ${bAvg !== null ? `<span class="perf-badge ${perfClass(bAvg)}">${bAvg}%</span>` : ''}
+            <div class="dash-submitted-time">${time}</div>
+          </div>
+        </div>
+        <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${Math.min(bAvg||0,100)}%;background:${barColor}"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);">
+          <span>Todate: ${report.todate_pct !== null ? report.todate_pct + '%' : '—'}</span>
+          <span>Tap to expand ▾</span>
+        </div>
+        <div class="dash-items-preview" id="dash-preview-${b.id}">
+          <table class="preview-table">
+            <tr><th>Work Item</th><th>Rem%</th><th>Plan%</th><th>Exec%</th><th>Perf</th></tr>
+            ${ITEMS.map((name, i) => {
+              const it = itemsData[i] || {};
+              const pv = parseFloat(it.perf);
+              const cls = !isNaN(pv) ? perfClass(pv) : '';
+              return `<tr>
+                <td>${name}</td>
+                <td>${it.remaining||'—'}</td>
+                <td>${it.plan||'—'}</td>
+                <td>${it.executed||'—'}</td>
+                <td><span class="perf-badge ${cls}">${it.perf||'—'}</span></td>
+              </tr>`;
+            }).join('')}
+          </table>
+          ${itemsData.some(it => it.desc) ? `<div style="margin-top:10px;">${itemsData.map((it,i) => it.desc ? `<div style="font-size:11px;color:var(--label);padding:3px 0;"><span style="color:var(--muted);">${ITEMS[i]}:</span> ${it.desc}</div>` : '').join('')}</div>` : ''}
+        </div>
+      `;
+      div.onclick = () => document.getElementById(`dash-preview-${b.id}`).classList.toggle('open');
+    }
+    dashBlocks.appendChild(div);
+  });
+}
+
+function perfClass(pct) {
+  if (pct >= 100) return 'perf-good';
+  if (pct >= 70)  return 'perf-warn';
+  return 'perf-bad';
+}
+
+// ══════════════════════════════════════════════
+// EXPORT CSV
+// ══════════════════════════════════════════════
+async function exportCSV() {
+  const date = document.getElementById('dash-date').value || todayStr();
+  const rows = await getAllReports(date);
+  if (!rows.length) { showToast('No data for this date', 'error'); return; }
+
+  let csv = 'Block,Contractor,Inspector,Todate%,Work Item,Remaining%,Daily Plan%,Daily Executed%,Performance,Description\n';
+  rows.forEach(r => {
+    const items = r.items_json ? JSON.parse(r.items_json) : [];
+    ITEMS.forEach((name, i) => {
+      const it = items[i] || {};
+      csv += [r.block_id, r.contractor, r.inspector_name, r.todate_pct||'',
+        name, it.remaining||'', it.plan||'', it.executed||'', it.perf||'',
+        `"${(it.desc||'').replace(/"/g,'""')}"`].join(',') + '\n';
+    });
+  });
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = `TuluDimtu_${date}.csv`;
+  a.click();
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+bootApp();
+</script>
+</body>
+</html>
