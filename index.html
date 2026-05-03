@@ -385,8 +385,8 @@ function saveConfig() {
 // ══════════════════════════════════════════════
 // SUPABASE API HELPERS
 // ══════════════════════════════════════════════
-let SUPABASE_URL = '';
-let SUPABASE_KEY = '';
+let SUPABASE_URL = 'https://vlalpcbhgbizodpidabf.supabase.co';
+let SUPABASE_KEY = 'sb_publishable_Nk3JcRxY5Sw9ywXUJsXBeA_bmrsR0kX';
 const TABLE = 'daily_reports';
 
 async function sbFetch(path, options = {}) {
@@ -462,17 +462,8 @@ let submittedCache = {};
 // BOOT
 // ══════════════════════════════════════════════
 function bootApp() {
-  const cfg = getConfig();
-  if (!cfg) {
-    document.getElementById('setup-screen').style.display = 'flex';
-    document.getElementById('main-app').style.display = 'none';
-    return;
-  }
-  SUPABASE_URL = cfg.url;
-  SUPABASE_KEY = cfg.key;
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
-
   document.getElementById('report-date').value = todayStr();
   document.getElementById('dash-date').value = todayStr();
   renderBlockGrid();
